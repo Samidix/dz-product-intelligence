@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DZ Product Intelligence</title>
+<style>
+:root{--navy:#08243a;--navy2:#0e3550;--green:#12c79a;--green2:#0fae88;--bg:#f5f7f8;--text:#10202d;--muted:#6b7782;--card:#fff;--line:#dce4e8}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,"Tahoma",sans-serif;background:var(--bg);color:var(--text)}
+header{background:var(--navy);color:#fff;padding:18px 20px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-weight:900;letter-spacing:.5px;font-size:18px}.logo b{color:var(--green)}
+.auth{background:#fff;color:#111;border-radius:12px;padding:8px 15px;font-size:14px}
+.hero{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;text-align:center;padding:55px 18px 70px}
+h1{font-size:42px;margin:10px auto 18px;max-width:760px;line-height:1.25}.accent{color:var(--green)}
+.sub{font-size:18px;line-height:1.8;max-width:720px;margin:auto;color:#d8e6ee}
+.box{max-width:760px;margin:-28px auto 35px;background:#fff;border-radius:24px;padding:20px;box-shadow:0 12px 40px #09243a22;position:relative}
+.tabs{display:flex;gap:8px}.tab{flex:1;padding:14px;border:1px solid var(--line);border-radius:12px;background:#f4f7f8;cursor:pointer;font-size:16px}.tab.active{background:#e3faf3;color:#08785e;border-color:#b9efdf}
+input{width:100%;padding:17px;border:1px solid #ccd7dd;border-radius:12px;margin-top:15px;font-size:16px;outline:none}input:focus{border-color:var(--green)}
+button{border:0;border-radius:12px;background:var(--green);color:#fff;font-weight:800;padding:16px;width:100%;font-size:17px;margin-top:13px;cursor:pointer}button:disabled{opacity:.6}
+.note{text-align:center;color:var(--muted);font-size:13px;margin-top:12px}
+.hidden{display:none}.loading{text-align:center;padding:30px}.spinner{width:42px;height:42px;border:4px solid #d9eee8;border-top-color:var(--green);border-radius:50%;animation:s 1s linear infinite;margin:10px auto 20px}@keyframes s{to{transform:rotate(360deg)}}
+.report{max-width:1100px;margin:28px auto;padding:0 16px}.decision{background:var(--navy);color:#fff;border-radius:20px;padding:24px;margin-bottom:18px}.decision .tag{display:inline-block;background:var(--green);color:#063a2d;padding:7px 14px;border-radius:999px;font-weight:900}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px}.card h3{margin-top:0;color:var(--navy)}.metric{font-size:28px;font-weight:900}.muted{color:var(--muted)}
+table{width:100%;border-collapse:collapse}th,td{padding:11px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}th{background:#f5f8f9}
+ul{line-height:1.9}.source a{color:#08785e;word-break:break-all}.error{background:#fff0f0;color:#9a2020;border:1px solid #f1c4c4;padding:15px;border-radius:12px;margin:15px 0}
+@media(max-width:700px){h1{font-size:31px}.grid{grid-template-columns:1fr}.box{margin:-24px 12px 25px}.hero{padding-bottom:55px}.tabs{gap:5px}.tab{font-size:14px;padding:12px 5px}}
+</style>
+</head>
+<body>
+<header><div class="logo">DZ PRODUCT <span>INTELLIGENCE <b>DZ</b></span></div><div class="auth">تسجيل / الدخول</div></header>
+
+<section id="home">
+<div class="hero">
+<h1>اعرف المنتج <span class="accent">قبل أن تستثمر فيه.</span></h1>
+<div class="sub">حلّل أي منتج تريد بيعه في الجزائر انطلاقًا من رابط المنتج أو اسمه، مع البحث في المصادر العامة وإظهار مصدر كل معلومة.</div>
+</div>
+<div class="box">
+<div class="tabs">
+<button class="tab active" data-mode="url">🔗 رابط المنتج</button>
+<button class="tab" data-mode="name">✏️ اسم المنتج</button>
+</div>
+<div id="urlInput"><input id="url" type="url" placeholder="الصق رابط المنتج من Alibaba / 1688 / أي متجر..."></div>
+<div id="nameInput" class="hidden"><input id="name" type="text" placeholder="اكتب اسم المنتج أو الموديل..."></div>
+<button id="analyze">🔍 تحليل المنتج</button>
+<div class="note">النتائج الحقيقية تعتمد على المصادر التي يمكن الوصول إليها وقت التحليل.</div>
+<div id="err"></div>
+</div>
+</section>
+
+<section id="loading" class="hidden">
+<div class="box loading"><div class="spinner"></div><h2>جاري تحليل المنتج...</h2><p class="muted">نتعرف على المنتج ثم نبحث عن السوق الجزائري والمنافسين والمصادر.</p></div>
+</section>
+
+<section id="reportSection" class="hidden">
+<div class="report" id="report"></div>
+</section>
+
+<script>
+let mode="url";
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active")); t.classList.add("active");
+  mode=t.dataset.mode; document.getElementById("urlInput").classList.toggle("hidden",mode!=="url");
+  document.getElementById("nameInput").classList.toggle("hidden",mode!=="name");
+}));
+function esc(x){return String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
+function money(x){return esc(x||"غير متوفر")}
+function render(r){
+ const prices=(r.market_prices||[]).map(p=>`<tr><td>${esc(p.title)}</td><td>${money(p.price_da)} DA</td><td>${esc(p.match_level)}</td><td class="source"><a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.source)}</a></td></tr>`).join("");
+ const comps=(r.competitors||[]).map(p=>`<tr><td>${esc(p.seller)}</td><td>${esc(p.product)}</td><td>${money(p.price_da)} DA</td><td class="source"><a href="${esc(p.url)}" target="_blank">${esc(p.source)}</a></td></tr>`).join("");
+ const risks=(r.risks||[]).map(x=>`<li>${esc(x)}</li>`).join("");
+ const actions=(r.next_actions||[]).map(x=>`<li>${esc(x)}</li>`).join("");
+ const sources=(r.sources||[]).map(s=>`<li class="source"><a href="${esc(s.url)}" target="_blank">${esc(s.title||s.url)}</a> — ${esc(s.observed_at||"")}</li>`).join("");
+ document.getElementById("report").innerHTML=`
+ <div class="decision"><div class="tag">${esc(r.decision)}</div><h2>${esc(r.product_name)}</h2><p>${esc(r.decision_reason)}</p><div class="muted" style="color:#c8d8df">ثقة البيانات: ${esc(r.confidence)}%</div></div>
+ <div class="grid">
+ <div class="card"><h3>هوية المنتج</h3><p><b>الفئة:</b> ${esc(r.category)}</p><p><b>العلامة:</b> ${esc(r.brand)}</p><p><b>الموديل:</b> ${esc(r.model)}</p><p>${esc(r.identity_notes)}</p></div>
+ <div class="card"><h3>ملخص السوق الجزائري</h3><p>${esc(r.market_summary)}</p></div>
+ <div class="card" style="grid-column:1/-1"><h3>أسعار السوق المرصودة</h3><table><tr><th>المنتج</th><th>السعر</th><th>مطابقة</th><th>المصدر</th></tr>${prices||"<tr><td colspan=4>لم نجد سعرًا موثوقًا كافيًا.</td></tr>"}</table></div>
+ <div class="card" style="grid-column:1/-1"><h3>المنافسون</h3><table><tr><th>البائع</th><th>المنتج</th><th>السعر</th><th>المصدر</th></tr>${comps||"<tr><td colspan=4>لم نجد منافسين موثقين كفاية.</td></tr>"}</table></div>
+ <div class="card"><h3>اقتصاد أولي</h3><p><b>سعر الشراء:</b> ${money(r.buy_cost_da)} DA</p><p><b>تكلفة إضافية تقديرية:</b> ${money(r.extra_cost_da)} DA</p><p><b>سعر بيع مرصود:</b> ${money(r.retail_price_da)} DA</p><p><b>الهامش النظري:</b> ${money(r.gross_margin_da)} DA</p><small class="muted">${esc(r.economics_note)}</small></div>
+ <div class="card"><h3>المخاطر</h3><ul>${risks}</ul></div>
+ <div class="card"><h3>الخطوات التالية</h3><ul>${actions}</ul></div>
+ <div class="card"><h3>المصادر</h3><ul>${sources}</ul></div>
+ </div>`;
+ document.getElementById("home").classList.add("hidden"); document.getElementById("loading").classList.add("hidden"); document.getElementById("reportSection").classList.remove("hidden"); window.scrollTo(0,0);
+}
+document.getElementById("analyze").addEventListener("click",async()=>{
+ const input=mode==="url"?document.getElementById("url").value.trim():document.getElementById("name").value.trim();
+ const err=document.getElementById("err"); err.innerHTML="";
+ if(!input){err.innerHTML='<div class="error">أدخل رابطًا أو اسم منتج أولًا.</div>';return}
+ document.getElementById("home").classList.add("hidden");document.getElementById("loading").classList.remove("hidden");
+ try{
+   const res=await fetch("/api/analyze",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({mode,input})});
+   const data=await res.json(); if(!res.ok) throw new Error(data.error||"حدث خطأ");
+   render(data);
+ }catch(e){
+   document.getElementById("loading").classList.add("hidden");document.getElementById("home").classList.remove("hidden");
+   err.innerHTML='<div class="error">'+esc(e.message)+'</div>';
+ }
+});
+</script>
+</body>
+</html>
