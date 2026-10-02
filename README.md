@@ -14,3 +14,4 @@ Then redeploy.
 
 The analysis is evidence-first: it does not invent prices when sources are missing. Algerian market prices should include source URL and observation date.
 real v1
+GitHub deployment test - Real V1
